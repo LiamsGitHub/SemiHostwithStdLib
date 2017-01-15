@@ -5,23 +5,27 @@
 
 # This project demonstrates semihosting using the nanolib and rdimon libraries
 
-# Project Name
-NAME=SemiHostwithStdLib
-
-################### File Locations #####################
+################### Project name and sources #####################
 include filePath
 
+NAME=SemiHostwithStdLib
+
+C_SOURCES = semihost_std.c 	# Enter list of all the C source files here
+S_SOURCES = $(FOUNDATION)/startup_std.S  $(FOUNDATION)/semihost_std.S	# Enter list of all the assembler source files here
+
+
+OBJECTS = $(C_SOURCES:.c=.o) $(S_SOURCES:.S=.o)
+OBJDIR = Objects2
+INCLUDES = -I./
+
+################### Tool Location #####################
 # Compiler/Assembler/Linker Paths
 
-
-CC=		$(PATH)arm-none-eabi-gcc
-OD =	$(PATH)arm-none-eabi-objdump
-NM =	$(PATH)arm-none-eabi-nm
-AS =	$(PATH)arm-none-eabi-as
-SZ =	$(PATH)arm-none-eabi-size
-
-OBJDIR = Objects
-INCLUDES = -I./
+CC=		$(TOOLS)arm-none-eabi-gcc
+OD =	$(TOOLS)arm-none-eabi-objdump
+NM =	$(TOOLS)arm-none-eabi-nm
+AS =	$(TOOLS)arm-none-eabi-as
+SZ =	$(TOOLS)arm-none-eabi-size
 
 ################### Libraries #####################
 # Library settings
@@ -37,8 +41,8 @@ CFLAGS = -mcpu=cortex-m3 -mthumb -I./ -Wall -g
 ASFLAGS = -mcpu=cortex-m3 -mthumb
 
 # Linker Flags 
-LINKER_SCRIPT = STM32F100C8v2.ld
-LFLAGS=-mthumb -mcpu=cortex-m3 $(NO_SEMIHOST) -T $(LINKER_SCRIPT) # Use std libraries
+LINKER_SCRIPT = $(FOUNDATION)/STM32F100C8v2_std.ld
+LDFLAGS=-mthumb -mcpu=cortex-m3 $(NO_SEMIHOST) -T $(LINKER_SCRIPT) # Use std libraries
 
 # Other Stuff
 ODFLAGS = -h --syms -S
@@ -46,37 +50,25 @@ REMOVE = rm -f
 
 ################### Build Steps #####################
 
-all:
-	@ echo "Compiling:"
-	mkdir -p $(OBJDIR)
+all: $(NAME).elf
 
-	$(CC) $(CFLAGS) -c semihost.c  -o $(OBJDIR)/semihost.o
-	$(AS) $(ASFLAGS) -c startup.S -o $(OBJDIR)/startup.o
-	$(CC) $(CFLAGS) -c semihost.S -o $(OBJDIR)/semihost_as.o
-
-	@ echo " "	
-	@ echo "Linking:"
-	$(CC) $(LFLAGS) $(OBJDIR)/startup.o $(OBJDIR)/semihost_as.o $(OBJDIR)/semihost.o -o $(NAME).elf
-
+$(NAME).elf: $(OBJECTS)
+	@ echo "Link:"
+	$(CC) $(LDFLAGS)  $^ -o $@
+	/bin/rm -f *.o
+	$(OD) $(ODFLAGS) $@ > $(NAME).lst
+	$(SZ) --format=berkeley $@
 	
-	@ echo " "	
-	@ echo "List file generation:"
-	$(OD) $(ODFLAGS) $(NAME).elf > $(NAME).lst
-	
+.S.o:
+	@ echo "asm:"
+	$(CC) $(ASFLAGS) -o $@ -c $<
+
+.c.o:
+	@ echo "c:"
+	$(CC) $(CFLAGS) -o $@ -c $<
+
+clean:
 	@ echo " "
-	@ echo "Symbol table:"
-	$(NM) -l $(NAME).elf
-	
-	@ echo " "
-	@ echo "Executable size:"
-	#$(SZ) --format=berkeley $(OBJDIR)/startup.o $(OBJDIR)/semihost_as.o $(OBJDIR)/semihost.o -o "$(NAME).elf"
-	$(SZ) --format=berkeley $(NAME).elf
-	
-	@ echo " "
-	@ echo "Cleaning up:"
-	$(REMOVE) -r $(OBJDIR)
-	
-
-	
-	
+	@ echo "Clean up"
+	/bin/rm -f *.o *.elf *.lst	
 
