@@ -6,7 +6,9 @@
 # This project demonstrates semihosting using the nanolib and rdimon libraries
 
 ################### Project name and sources #####################
-include filePath
+ROOTDIR = ~/Eclipse
+FOUNDATION = $(ROOTDIR)/WorkspaceJan16/Foundation
+TOOLS = $(ROOTDIR)/gcc-arm-none-eabi-5_2-2015q4/bin/
 
 NAME=SemiHostwithStdLib
 
