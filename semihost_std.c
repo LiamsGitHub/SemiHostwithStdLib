@@ -97,7 +97,7 @@ int main()
 
 	while(1)
 	{
-		printf("This is a longer test1  %d \n",j++);
+		printf("std lib test  %d \n",j++);
 
 
 		for (k=0;k<100000;k++);
